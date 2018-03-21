@@ -62,12 +62,9 @@ Vagrant.configure("2") do |config|
 		
 		node1.vm.provision "shell", inline: <<-SHELL
 			echo "initialize node1"
-			
-			echo "192.168.33.10" > ~/server.txt
-			ssh-keyscan -f ~/server.txt >> ~/.ssh/known_hosts
-			sshpass -p "vagrant" scp vagrant@192.168.33.10:/home/vagrant/join.txt ~/join.txt
-			source ~/join.txt
 		SHELL
+		
+		node1.vm.provision "shell", path: "join-cluster.sh"
 	end
 	
 	config.vm.define "node2" do |node2|
@@ -90,11 +87,8 @@ Vagrant.configure("2") do |config|
 		
 		node2.vm.provision "shell", inline: <<-SHELL
 			echo "initialize node2"
-			
-			echo "192.168.33.10" > ~/server.txt
-			ssh-keyscan -f ~/server.txt >> ~/.ssh/known_hosts
-			sshpass -p "vagrant" scp vagrant@192.168.33.10:/home/vagrant/join.txt ~/join.txt
-			source ~/join.txt
 		SHELL
+		
+		node2.vm.provision "shell", path: "join-cluster.sh"
 	end
 end
