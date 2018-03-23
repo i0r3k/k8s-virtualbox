@@ -1,6 +1,11 @@
+#!/bin/bash
+
+k8s_version=$1
+
 #update to latest and install required packages
 yum -y update
-yum install -y git sed sshpass
+yum install -y git sed sshpass ntp
+systemctl enable ntpd && systemctl start ntp
 yum install -y docker-1.13.1-53.git774336d.el7.centos.x86_64
 systemctl enable docker && systemctl start docker
 
@@ -26,21 +31,21 @@ sed -i '$a\net.bridge.bridge-nf-call-ip6tables=1' /etc/sysctl.conf
 
 # install kubeadm kubelet and kubectl
 git clone https://github.com/linyang0625/k8s-utils ~/k8s-utils
-yum install -y ~/k8s-utils/rpm/v1.9.5/*.rpm
+yum install -y ~/k8s-utils/rpm/$k8s_version/*.rpm
 systemctl enable kubelet && systemctl start kubelet
 
 # pull all required docker images
-docker pull iorek/kube-proxy-amd64:v1.9.5
-docker tag iorek/kube-proxy-amd64:v1.9.5 gcr.io/google_containers/kube-proxy-amd64:v1.9.5
+docker pull iorek/kube-proxy-amd64:$k8s_version
+docker tag iorek/kube-proxy-amd64:$k8s_version gcr.io/google_containers/kube-proxy-amd64:$k8s_version
 
-docker pull iorek/kube-controller-manager-amd64:v1.9.5
-docker tag iorek/kube-controller-manager-amd64:v1.9.5 gcr.io/google_containers/kube-controller-manager-amd64:v1.9.5
+docker pull iorek/kube-controller-manager-amd64:$k8s_version
+docker tag iorek/kube-controller-manager-amd64:$k8s_version gcr.io/google_containers/kube-controller-manager-amd64:$k8s_version
 
-docker pull iorek/kube-apiserver-amd64:v1.9.5
-docker tag iorek/kube-apiserver-amd64:v1.9.5 gcr.io/google_containers/kube-apiserver-amd64:v1.9.5
+docker pull iorek/kube-apiserver-amd64:$k8s_version
+docker tag iorek/kube-apiserver-amd64:$k8s_version gcr.io/google_containers/kube-apiserver-amd64:$k8s_version
 
-docker pull iorek/kube-scheduler-amd64:v1.9.5
-docker tag iorek/kube-scheduler-amd64:v1.9.5 gcr.io/google_containers/kube-scheduler-amd64:v1.9.5
+docker pull iorek/kube-scheduler-amd64:$k8s_version
+docker tag iorek/kube-scheduler-amd64:$k8s_version gcr.io/google_containers/kube-scheduler-amd64:$k8s_version
 
 docker pull iorek/etcd-amd64:3.1.11
 docker tag iorek/etcd-amd64:3.1.11 gcr.io/google_containers/etcd-amd64:3.1.11
@@ -72,3 +77,7 @@ echo "192.168.33.10 vg-k8s-master
 # create regular user
 useradd -U k8s
 usermod -aG wheel k8s
+
+# change time zone
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+timedatectl set-timezone Asia/Shanghai

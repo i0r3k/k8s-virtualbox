@@ -1,37 +1,47 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+$num_nodes = 2
+$vm_cpus = 2
+$vm_memory = 2048
+$vm_box = "centos/7"
+$vm_box_version = "1801.02"
+$k8s_version = "v1.9.5"
+$k8s_cluster_ip_tpl = "192.168.33.%s"
+$k8s_master_ip = $k8s_cluster_ip_tpl % "10"
+$vm_name_tpl = "vg-k8s-%s"
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
 Vagrant.configure("2") do |config|
-
 	config.vm.define "master", primary: true do |master|
-		master.vm.box = "centos/7"
-		master.vm.box_version = "1802.01"
+		master.vm.box = $vm_box
+		master.vm.box_version = $vm_box_version
 
 		master.vm.box_check_update = false
 	  
-		master.vm.hostname = "vg-k8s-master"
+		master.vm.hostname = $vm_name_tpl % "master"
 	  
-		master.vm.network "private_network", ip: "192.168.33.10"
+		master.vm.network "private_network", ip: $k8s_master_ip
 
 		master.vm.provider "virtualbox" do |vb|
-			vb.name = "vg-k8s-master"
-			vb.memory = "2048"
-			vb.cpus = "2"
+			vb.name = $vm_name_tpl % "master"
+			vb.memory = $vm_memory
+			vb.cpus = $vm_cpus
+			vb.gui = false
+			
+			# On VirtualBox, we don't have guest additions or a functional vboxsf，
+			# so tell Vagrant that so it can be smarter.
+			vb.check_guest_additions = false
+			vb.functional_vboxsf     = false
 		end
 		
-		master.vm.provision "shell", path: "preflight.sh"
+		master.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version]
 		
-		master.vm.provision "shell", inline: <<-SHELL
+		master.vm.provision "shell", :args => [$k8s_master_ip, $k8s_version], inline: <<-SHELL
 			# allow root to run kubectl
-			echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
-			source ~/.bash_profile
+			echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+			source /etc/profile
+			
+			ip addr show
 
 			# initialize k8s master node
-			kubeadm init --apiserver-advertise-address 192.168.33.10 --kubernetes-version v1.9.5 --pod-network-cidr 10.244.0.0/16 > ~/install.log
+			kubeadm init --apiserver-advertise-address $1 --kubernetes-version $2 --pod-network-cidr 10.244.0.0/16 > ~/install.log
 
 			# grep the join command
 			sed -n '/kubeadm join/p' ~/install.log > ~/join.txt
@@ -42,53 +52,31 @@ Vagrant.configure("2") do |config|
 		SHELL
 	end
 	
-	config.vm.define "node1" do |node1|
-		node1.vm.box = "centos/7"
-		node1.vm.box_version = "1802.01"
+	(1..$num_nodes).each do |i|
+		config.vm.define "node#{i}" do |node|
+			node.vm.box = $vm_box
+			node.vm.box_version = $vm_box_version
 
-		node1.vm.box_check_update = false
-	  
-		node1.vm.hostname = "vg-k8s-node1"
-	  
-		node1.vm.network "private_network", ip: "192.168.33.11"
+			node.vm.box_check_update = false
+		  
+			node.vm.hostname = $vm_name_tpl % "node-#{i}"
+		  
+			node.vm.network "private_network", ip: $k8s_cluster_ip_tpl % "#{i+10}"
 
-		node1.vm.provider "virtualbox" do |vb|
-			vb.name = "vg-k8s-node1"
-			vb.memory = "2048"
-			vb.cpus = "2"
+			node.vm.provider "virtualbox" do |vb|
+				vb.name = $vm_name_tpl % "node-#{i}"
+				vb.memory = $vm_memory
+				vb.cpus = $vm_cpus
+				vb.gui = false
+			end
+			
+			node.vm.provision "shell", path: "preflight.sh", :args => [$k8s_version]
+			
+			node.vm.provision "shell", inline: <<-SHELL
+				echo "initialize node-#{i}"
+			SHELL
+			
+			node.vm.provision "shell", path: "join-cluster.sh", :args => [$k8s_master_ip]
 		end
-		
-		node1.vm.provision "shell", path: "preflight.sh"
-		
-		node1.vm.provision "shell", inline: <<-SHELL
-			echo "initialize node1"
-		SHELL
-		
-		node1.vm.provision "shell", path: "join-cluster.sh"
-	end
-	
-	config.vm.define "node2" do |node2|
-		node2.vm.box = "centos/7"
-		node2.vm.box_version = "1802.01"
-
-		node2.vm.box_check_update = false
-	  
-		node2.vm.hostname = "vg-k8s-node2"
-	  
-		node2.vm.network "private_network", ip: "192.168.33.12"
-
-		node2.vm.provider "virtualbox" do |vb|
-			vb.name = "vg-k8s-node2"
-			vb.memory = "2048"
-			vb.cpus = "2"
-		end
-		
-		node2.vm.provision "shell", path: "preflight.sh"
-		
-		node2.vm.provision "shell", inline: <<-SHELL
-			echo "initialize node2"
-		SHELL
-		
-		node2.vm.provision "shell", path: "join-cluster.sh"
 	end
 end
