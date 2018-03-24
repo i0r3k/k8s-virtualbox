@@ -1,6 +1,7 @@
 #!/bin/bash
 
 k8s_version=$1
+docker_registry="registry.cn-hangzhou.aliyuncs.com/ctag"
 
 #update to latest and install required packages
 yum -y update
@@ -30,43 +31,53 @@ sed -i '$a\net.bridge.bridge-nf-call-iptables=1' /etc/sysctl.conf
 sed -i '$a\net.bridge.bridge-nf-call-ip6tables=1' /etc/sysctl.conf
 
 # install kubeadm kubelet and kubectl
-git clone https://github.com/linyang0625/k8s-utils ~/k8s-utils
+git clone https://code.aliyun.com/ericlin0625/k8s-utils.git ~/k8s-utils
 yum install -y ~/k8s-utils/rpm/$k8s_version/*.rpm
 systemctl enable kubelet && systemctl start kubelet
 
+# Aliyun docker registry
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://yf758kjo.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
 # pull all required docker images
-docker pull iorek/kube-proxy-amd64:$k8s_version
-docker tag iorek/kube-proxy-amd64:$k8s_version gcr.io/google_containers/kube-proxy-amd64:$k8s_version
+docker pull $docker_registry/kube-proxy-amd64:$k8s_version
+docker tag $docker_registry/kube-proxy-amd64:$k8s_version gcr.io/google_containers/kube-proxy-amd64:$k8s_version
 
-docker pull iorek/kube-controller-manager-amd64:$k8s_version
-docker tag iorek/kube-controller-manager-amd64:$k8s_version gcr.io/google_containers/kube-controller-manager-amd64:$k8s_version
+docker pull $docker_registry/kube-controller-manager-amd64:$k8s_version
+docker tag $docker_registry/kube-controller-manager-amd64:$k8s_version gcr.io/google_containers/kube-controller-manager-amd64:$k8s_version
 
-docker pull iorek/kube-apiserver-amd64:$k8s_version
-docker tag iorek/kube-apiserver-amd64:$k8s_version gcr.io/google_containers/kube-apiserver-amd64:$k8s_version
+docker pull $docker_registry/kube-apiserver-amd64:$k8s_version
+docker tag $docker_registry/kube-apiserver-amd64:$k8s_version gcr.io/google_containers/kube-apiserver-amd64:$k8s_version
 
-docker pull iorek/kube-scheduler-amd64:$k8s_version
-docker tag iorek/kube-scheduler-amd64:$k8s_version gcr.io/google_containers/kube-scheduler-amd64:$k8s_version
+docker pull $docker_registry/kube-scheduler-amd64:$k8s_version
+docker tag $docker_registry/kube-scheduler-amd64:$k8s_version gcr.io/google_containers/kube-scheduler-amd64:$k8s_version
 
-docker pull iorek/etcd-amd64:3.1.11
-docker tag iorek/etcd-amd64:3.1.11 gcr.io/google_containers/etcd-amd64:3.1.11
+docker pull $docker_registry/etcd-amd64:3.1.11
+docker tag $docker_registry/etcd-amd64:3.1.11 gcr.io/google_containers/etcd-amd64:3.1.11
 
-docker pull iorek/pause-amd64:3.0
-docker tag iorek/pause-amd64:3.0 gcr.io/google_containers/pause-amd64:3.0
+docker pull $docker_registry/pause-amd64:3.0
+docker tag $docker_registry/pause-amd64:3.0 gcr.io/google_containers/pause-amd64:3.0
 
-docker pull iorek/k8s-dns-dnsmasq-nanny-amd64:1.14.7
-docker tag iorek/k8s-dns-dnsmasq-nanny-amd64:1.14.7 gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.7
+docker pull $docker_registry/k8s-dns-dnsmasq-nanny-amd64:1.14.7
+docker tag $docker_registry/k8s-dns-dnsmasq-nanny-amd64:1.14.7 gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.7
 
-docker pull iorek/k8s-dns-sidecar-amd64:1.14.7
-docker tag iorek/k8s-dns-sidecar-amd64:1.14.7 gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.7
+docker pull $docker_registry/k8s-dns-sidecar-amd64:1.14.7
+docker tag $docker_registry/k8s-dns-sidecar-amd64:1.14.7 gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.7
 
-docker pull iorek/k8s-dns-kube-dns-amd64:1.14.7
-docker tag iorek/k8s-dns-kube-dns-amd64:1.14.7 gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.7
+docker pull $docker_registry/k8s-dns-kube-dns-amd64:1.14.7
+docker tag $docker_registry/k8s-dns-kube-dns-amd64:1.14.7 gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.7
 
-docker pull iorek/flannel:v0.9.1-amd64
-docker tag iorek/flannel:v0.9.1-amd64 quay.io/coreos/flannel:v0.9.1-amd64 
+docker pull $docker_registry/flannel:v0.9.1-amd64
+docker tag $docker_registry/flannel:v0.9.1-amd64 quay.io/coreos/flannel:v0.9.1-amd64 
 
-docker pull iorek/kubernetes-dashboard-amd64:v1.8.3
-docker tag iorek/kubernetes-dashboard-amd64:v1.8.3 k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.3 
+docker pull $docker_registry/kubernetes-dashboard-amd64:v1.8.3
+docker tag $docker_registry/kubernetes-dashboard-amd64:v1.8.3 k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.3 
 
 # ip-hostname mapping
 echo "192.168.33.10 vg-k8s-master
