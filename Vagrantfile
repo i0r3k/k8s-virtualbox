@@ -26,17 +26,11 @@ Vagrant.configure("2") do |config|
 			vb.memory = $vm_memory
 			vb.cpus = $vm_cpus
 			vb.gui = false
-			
-			# On VirtualBox, we don't have guest additions or a functional vboxsf，
-			# so tell Vagrant that so it can be smarter.
-			#vb.check_guest_additions = false
-			#vb.functional_vboxsf     = false
-			
-			#vb.customize ['modifyvm', :id, '--nic1', 'hostonly', '--nic2', 'nat']
-			#vb.customize ['modifyvm', :id, '--natpf2', 'ssh,tcp,127.0.0.1,2222,,22']
 		end
 		
 		master.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version]
+		
+		master.vm.provision :shell, :path => 'pull-docker-images-master.sh', :args => [$k8s_version]
 		
 		master.vm.provision "shell", :args => [$k8s_master_ip, $k8s_version], inline: <<-SHELL
 			# allow root to run kubectl
@@ -73,18 +67,17 @@ Vagrant.configure("2") do |config|
 				vb.memory = $vm_memory
 				vb.cpus = $vm_cpus
 				vb.gui = false
-				
-				#vb.customize ['modifyvm', :id, '--nic1', 'hostonly', '--nic2', 'nat']
-				#vb.customize ['modifyvm', :id, '--natpf2', 'ssh,tcp,127.0.0.1,2222,,22']
 			end
 			
-			node.vm.provision "shell", path: "preflight.sh", :args => [$k8s_version]
+			node.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version]
+			
+			node.vm.provision :shell, :path => 'pull-docker-images-node.sh', :args => [$k8s_version]
 			
 			node.vm.provision "shell", inline: <<-SHELL
 				echo "initialize node-#{i}"
 			SHELL
 			
-			node.vm.provision "shell", path: "join-cluster.sh", :args => [$k8s_master_ip]
+			node.vm.provision :shell, :path => "join-cluster.sh", :args => [$k8s_master_ip]
 		end
 	end
 end
