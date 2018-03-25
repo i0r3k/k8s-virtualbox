@@ -80,10 +80,12 @@ docker pull $docker_registry/kubernetes-dashboard-amd64:v1.8.3
 docker tag $docker_registry/kubernetes-dashboard-amd64:v1.8.3 k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.3 
 
 # ip-hostname mapping
-echo "192.168.33.10 vg-k8s-master
-192.168.31.11 vg-k8s-node-1
-192.168.32.12 vg-k8s-node-2
-192.168.33.13 vg-k8s-node-3" >> /etc/hosts
+echo "127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.33.10 vg-k8s-master
+192.168.33.11 vg-k8s-node-1
+192.168.33.12 vg-k8s-node-2
+192.168.33.13 vg-k8s-node-3" > /etc/hosts
 
 # create regular user
 useradd -U k8s
