@@ -32,23 +32,7 @@ Vagrant.configure("2") do |config|
 		
 		master.vm.provision :shell, :path => 'pull-docker-images-master.sh', :args => [$k8s_version]
 		
-		master.vm.provision "shell", :args => [$k8s_master_ip, $k8s_version], inline: <<-SHELL
-			# allow root to run kubectl
-			echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
-			source /etc/profile
-			
-			ip addr show
-
-			# initialize k8s master node
-			kubeadm init --apiserver-advertise-address $1 --kubernetes-version $2 --pod-network-cidr 10.244.0.0/16 > ~/install.log
-
-			# grep the join command
-			sed -n '/kubeadm join/p' ~/install.log > ~/join.txt
-			cp ~/join.txt /home/vagrant/join.txt
-
-			# install flannel
-			kubectl apply -f ~/k8s-utils/yaml/kube-flannel-vagrant.yml
-		SHELL
+		master.vm.provision :shell, :path => 'init-master.sh', :args => [$k8s_master_ip, $k8s_version]
 	end
 	
 	(1..$num_nodes).each do |i|
