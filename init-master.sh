@@ -27,6 +27,7 @@ echo "URL: https://192.168.33.11:30001/"
 # install Heapster
 kubectl apply -f ~/k8s-utils/yaml/heapster/
 
+kubectl create namespace istio-system
 # install traefik ingress controller
 kubectl apply -f ~/k8s-utils/yaml/traefik-ingress/
 
