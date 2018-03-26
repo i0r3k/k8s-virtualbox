@@ -33,3 +33,22 @@ kubectl apply -f ~/k8s-utils/yaml/traefik-ingress/
 # install EFK
 # NOTE: Powerful CPU and memory allocation required. At least 4G per virtual machine.
 #kubectl apply -f ~/k8s-utils/yaml/efk/
+
+# install Service Mesh
+curl -L https://git.io/getLatestIstio | sh -
+cd ~/istio-*
+## install istio
+kubectl apply -f install/kubernetes/istio.yaml
+## install istio sidecar auto injector
+./install/kubernetes/webhook-create-signed-cert.sh \
+    --service istio-sidecar-injector \
+    --namespace istio-system \
+    --secret sidecar-injector-certs
+	
+kubectl apply -f install/kubernetes/istio-sidecar-injector-configmap-release.yaml
+
+cat install/kubernetes/istio-sidecar-injector.yaml | \
+     ./install/kubernetes/webhook-patch-ca-bundle.sh > \
+     install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+
+kubectl apply -f install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml

@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
 		
 		master.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version]
 		
-		master.vm.provision :shell, :path => 'pull-docker-images-master.sh', :args => [$k8s_version]
+		master.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$k8s_version]
 		
 		master.vm.provision :shell, :path => 'init-master.sh', :args => [$k8s_master_ip, $k8s_version]
 	end
@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
 			
 			node.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version]
 			
-			node.vm.provision :shell, :path => 'pull-docker-images-node.sh', :args => [$k8s_version]
+			node.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$k8s_version]
 			
 			node.vm.provision "shell", inline: <<-SHELL
 				echo "initialize node-#{i}"
