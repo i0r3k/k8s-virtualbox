@@ -19,7 +19,11 @@ systemctl restart sshd
 
 #turn off swap
 swapoff -a 
-sed 's/.*swap.*/#&/' /etc/fstab
+#swapoff -v /dev/VolGroup00/LogVol01
+#lvm lvremove -y /dev/VolGroup00/LogVol01
+sed -i 's/.*swap.*/#&/' /etc/fstab
+cat /proc/swaps # free
+
 
 #turn off SELINUX
 setenforce 0
