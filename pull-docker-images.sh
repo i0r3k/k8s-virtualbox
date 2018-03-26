@@ -1,7 +1,8 @@
 #!/bin/bash
 
 k8s_version=$1
-docker_registry="registry.cn-hangzhou.aliyuncs.com/ctag"
+#docker_registry="registry.cn-hangzhou.aliyuncs.com/ctag"
+docker_registry=$2
 
 # pull all required docker images
 docker pull $docker_registry/kube-proxy-amd64:$k8s_version
