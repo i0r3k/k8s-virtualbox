@@ -1,12 +1,12 @@
 #!/bin/bash
 
 k8s_version=$1
-docker_registry="registry.cn-hangzhou.aliyuncs.com/ctag"
+docker_registry=$2
 
 #update to latest and install required packages
 yum -y update
-yum install -y git sed sshpass ntp
-systemctl enable ntpd && systemctl start ntp
+yum install -y git sed sshpass ntp wget net-tools
+systemctl enable ntpd && systemctl start ntpd
 yum install -y docker-1.13.1-53.git774336d.el7.centos.x86_64
 systemctl enable docker && systemctl start docker
 
@@ -35,8 +35,24 @@ sed -i '$a\net.bridge.bridge-nf-call-iptables=1' /etc/sysctl.conf
 sed -i '$a\net.bridge.bridge-nf-call-ip6tables=1' /etc/sysctl.conf
 
 # install kubeadm kubelet and kubectl
-git clone https://code.aliyun.com/ericlin0625/k8s-utils.git ~/k8s-utils
-yum install -y ~/k8s-utils/rpm/$k8s_version/*.rpm
+#yum install -y ~/k8s-utils/rpm/$k8s_version/*.rpm
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+yum install -y \
+	kubelet-1.9.5-0.x86_64 \
+	kubectl-1.9.5-0.x86_64 \
+	kubeadm-1.9.5-0.x86_64 \
+	kubernetes-cni-0.6.0-0.x86_64 \
+	socat-1.7.3.2-2.el7.x86_64
+cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
+[Service]
+Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=$docker_registry/pause-amd64:3.0"
+EOF
 systemctl enable kubelet && systemctl start kubelet
 
 # Aliyun docker registry
