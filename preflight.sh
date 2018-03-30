@@ -3,12 +3,8 @@
 k8s_version=$1
 docker_registry=$2
 
-#update to latest and install required packages
+#update to latest packages
 yum -y update
-yum install -y git sed sshpass ntp wget net-tools
-systemctl enable ntpd && systemctl start ntpd
-yum install -y docker-1.13.1-53.git774336d.el7.centos.x86_64
-systemctl enable docker && systemctl start docker
 
 #turn off firewall
 systemctl disable firewalld && systemctl stop firewalld
@@ -17,13 +13,34 @@ systemctl disable firewalld && systemctl stop firewalld
 sed -re 's/^(PasswordAuthentication)([[:space:]]+)no/\1\2yes/' -i.`date -I` /etc/ssh/sshd_config
 systemctl restart sshd
 
+# install required packages
+yum install -y git sed sshpass ntp wget net-tools
+
+# enable & start ntpd
+systemctl enable ntpd && systemctl start ntpd
+# change time zone
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+timedatectl set-timezone Asia/Shanghai
+
+# install docker
+yum install -y docker-1.13.1-53.git774336d.el7.centos.x86_64
+systemctl enable docker && systemctl start docker
+# Aliyun docker registry
+mkdir -p /etc/docker
+tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://yf758kjo.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
 #turn off swap
 swapoff -a 
 #swapoff -v /dev/VolGroup00/LogVol01
 #lvm lvremove -y /dev/VolGroup00/LogVol01
 sed -i 's/.*swap.*/#&/' /etc/fstab
 cat /proc/swaps # free
-
 
 #turn off SELINUX
 setenforce 0
@@ -44,9 +61,9 @@ enabled=1
 gpgcheck=0
 EOF
 yum install -y \
-	kubelet-1.9.5-0.x86_64 \
-	kubectl-1.9.5-0.x86_64 \
-	kubeadm-1.9.5-0.x86_64 \
+	kubelet-1.10.0-0.x86_64 \
+	kubectl-1.10.0-0.x86_64 \
+	kubeadm-1.10.0-0.x86_64 \
 	kubernetes-cni-0.6.0-0.x86_64 \
 	socat-1.7.3.2-2.el7.x86_64
 cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
@@ -55,28 +72,16 @@ Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=$docker_registry/pau
 EOF
 systemctl enable kubelet && systemctl start kubelet
 
-# Aliyun docker registry
-sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<-'EOF'
-{
-  "registry-mirrors": ["https://yf758kjo.mirror.aliyuncs.com"]
-}
-EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-
 # ip-hostname mapping
-echo "127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+cat > /etc/hosts <<EOF
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 192.168.33.10 vg-k8s-master
 192.168.33.11 vg-k8s-node-1
 192.168.33.12 vg-k8s-node-2
-192.168.33.13 vg-k8s-node-3" > /etc/hosts
+192.168.33.13 vg-k8s-node-3
+EOF
 
-# create regular user
-useradd -U k8s
-usermod -aG wheel k8s
-
-# change time zone
-cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-timedatectl set-timezone Asia/Shanghai
+# create regular user(no need for provisoning with vagrant)
+#useradd -U k8s
+#usermod -aG wheel k8s

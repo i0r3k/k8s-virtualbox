@@ -17,7 +17,7 @@ kind: MasterConfiguration
 api:
   advertiseAddress: $k8s_master_ip
 etcd:
-  image: iorek/etcd-amd64:3.1.11
+  image: iorek/etcd-amd64:3.1.12
 networking:
   podSubnet: 10.244.0.0/16
 kubernetesVersion: $k8s_version
