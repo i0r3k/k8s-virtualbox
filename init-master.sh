@@ -5,7 +5,10 @@ k8s_version=$2
 docker_registry=$3
 
 # allow root to run kubectl
-echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+#echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+tee -a /etc/profile <<-'EOF'
+export KUBECONFIG=/etc/kubernetes/admin.conf
+EOF
 source /etc/profile
 
 ip addr show
@@ -51,7 +54,11 @@ echo "URL: https://192.168.33.11:30001/"
 wget https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
 tar -zxvf helm-v2.8.2-linux-amd64.tar.gz
 mv linux-amd64/helm /usr/local/bin/helm
-export PATH=/usr/local/bin:$PATH && echo "export PATH=/usr/local/bin:$PATH" >> ~/.bash_profile
+export PATH=/usr/local/bin:$PATH 
+#&& echo "export PATH=/usr/local/bin:$PATH" >> ~/.bash_profile
+tee -a ~/.bash_profile <<-'EOF'
+export PATH=/usr/local/bin:$PATH
+EOF
 kubectl create serviceaccount tiller --namespace kube-system
 kubectl apply -f ~/k8s-utils/yaml/helm/rbac-config.yaml
 helm init --service-account tiller

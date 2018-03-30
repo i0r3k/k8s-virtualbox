@@ -32,8 +32,7 @@ tee /etc/docker/daemon.json <<-'EOF'
   "registry-mirrors": ["https://yf758kjo.mirror.aliyuncs.com"]
 }
 EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+systemctl daemon-reload && systemctl restart docker
 
 #turn off swap
 swapoff -a 
@@ -53,7 +52,7 @@ sed -i '$a\net.bridge.bridge-nf-call-ip6tables=1' /etc/sysctl.conf
 
 # install kubeadm kubelet and kubectl
 #yum install -y ~/k8s-utils/rpm/$k8s_version/*.rpm
-cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+tee -a /etc/yum.repos.d/kubernetes.repo <<-'EOF'
 [kubernetes]
 name=Kubernetes
 baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
@@ -73,7 +72,7 @@ EOF
 systemctl enable kubelet && systemctl start kubelet
 
 # ip-hostname mapping
-cat > /etc/hosts <<EOF
+tee /etc/hosts <<-'EOF'
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 192.168.33.10 vg-k8s-master
