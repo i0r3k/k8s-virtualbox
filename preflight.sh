@@ -14,7 +14,7 @@ sed -re 's/^(PasswordAuthentication)([[:space:]]+)no/\1\2yes/' -i.`date -I` /etc
 systemctl restart sshd
 
 # install required packages
-yum install -y git sed sshpass ntp wget net-tools
+yum install -y git sed sshpass ntp wget net-tools bind-utils bash-completion
 
 # enable & start ntpd
 systemctl enable ntpd && systemctl start ntpd

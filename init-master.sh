@@ -25,6 +25,8 @@ networking:
   podSubnet: 10.244.0.0/16
 kubernetesVersion: $k8s_version
 imageRepository: $docker_registry
+featureGates:
+  CoreDNS: true
 EOF
 #kubeadm init --apiserver-advertise-address $k8s_master_ip --kubernetes-version $k8s_version --pod-network-cidr 10.244.0.0/16 > ~/install.log
 kubeadm init --config ~/config.yaml > ~/install.log
@@ -32,6 +34,11 @@ kubeadm init --config ~/config.yaml > ~/install.log
 # grep the join command
 sed -n '/kubeadm join/p' ~/install.log > ~/join.txt
 cp ~/join.txt /home/vagrant/join.txt
+
+# completion for kubectl
+tee -a ~/.bashrc <<-'EOF'
+source <(kubectl completion bash)
+EOF
 
 # pull all required YAMLs and scripts
 git clone https://github.com/linyang0625/k8s-utils.git ~/k8s-utils
@@ -56,7 +63,7 @@ tar -zxvf helm-v2.8.2-linux-amd64.tar.gz
 mv linux-amd64/helm /usr/local/bin/helm
 export PATH=/usr/local/bin:$PATH 
 #&& echo "export PATH=/usr/local/bin:$PATH" >> ~/.bash_profile
-tee -a ~/.bash_profile <<-'EOF'
+tee -a ~/.bashrc <<-'EOF'
 export PATH=/usr/local/bin:$PATH
 EOF
 kubectl create serviceaccount tiller --namespace kube-system
