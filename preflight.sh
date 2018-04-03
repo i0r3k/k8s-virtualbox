@@ -19,7 +19,7 @@ yum install -y git sed sshpass ntp wget net-tools bind-utils bash-completion
 # enable & start ntpd
 systemctl enable ntpd && systemctl start ntpd
 # change time zone
-cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 timedatectl set-timezone Asia/Shanghai
 
 # install docker
