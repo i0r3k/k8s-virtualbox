@@ -35,7 +35,6 @@ kubeadm init --config ~/config.yaml > ~/install.log
 sed -n '/kubeadm join/p' ~/install.log > ~/join.txt
 cp ~/join.txt /home/vagrant/join.txt
 
-# completion for kubectl
 tee -a ~/.bashrc <<-'EOF'
 source <(kubectl completion bash)
 EOF
@@ -73,10 +72,14 @@ helm init --service-account tiller
 # install Heapster
 kubectl apply -f ~/k8s-utils/yaml/heapster/
 
-kubectl create namespace istio-system
-# install traefik ingress controller
-kubectl apply -f ~/k8s-utils/yaml/traefik-ingress/
-
 # install EFK
 # NOTE: Powerful CPU and memory allocation required. At least 4G per virtual machine.
 #kubectl apply -f ~/k8s-utils/yaml/efk/
+
+# install weave scope
+kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+# to ensure the namespace exists
+kubectl create namespace istio-system
+# install traefik ingress controller
+kubectl apply -f ~/k8s-utils/yaml/traefik-ingress/

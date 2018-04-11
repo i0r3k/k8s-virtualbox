@@ -32,6 +32,7 @@ tee /etc/docker/daemon.json <<-'EOF'
   "registry-mirrors": ["https://yf758kjo.mirror.aliyuncs.com"]
 }
 EOF
+sed -i 's/log-driver=journald/log-driver=json-file/g' /etc/sysconfig/docker
 systemctl daemon-reload && systemctl restart docker
 
 #turn off swap
@@ -55,7 +56,7 @@ sed -i '$a\net.bridge.bridge-nf-call-ip6tables=1' /etc/sysctl.conf
 tee -a /etc/yum.repos.d/kubernetes.repo <<-'EOF'
 [kubernetes]
 name=Kubernetes
-baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
 enabled=1
 gpgcheck=0
 EOF
@@ -67,7 +68,7 @@ yum install -y \
 	socat-1.7.3.2-2.el7.x86_64
 cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
 [Service]
-Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=$docker_registry/pause-amd64:3.0"
+Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=$docker_registry/pause-amd64:3.1"
 EOF
 systemctl enable kubelet && systemctl start kubelet
 
