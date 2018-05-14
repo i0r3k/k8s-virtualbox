@@ -1,7 +1,7 @@
 #!/bin/bash
 
 k8s_master_ip=$1
-k8s_version=$2
+k8s_version="v$2"
 docker_registry=$3
 
 # allow root to run kubectl
@@ -45,6 +45,9 @@ EOF
 # install flannel
 kubectl apply -f /vagrant/yaml/flannel/kube-flannel-vagrant.yml
 
+# install storage-class
+kubectl apply -f /vagrant/yaml/storage-class/local/default.yaml
+
 # install dashboard
 kubectl apply -f /vagrant/yaml/dashboard/kubernetes-dashboard.yaml
 kubectl apply -f /vagrant/yaml/dashboard/admin-role.yaml
@@ -66,8 +69,9 @@ tee -a ~/.bashrc <<-'EOF'
 export PATH=/usr/local/bin:$PATH
 EOF
 kubectl create serviceaccount tiller --namespace kube-system
+#kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 kubectl apply -f /vagrant/yaml/helm/rbac-config.yaml
-helm init --service-account tiller
+helm init --service-account tiller -i iorek/tiller:v2.8.2
 
 # install Heapster
 kubectl apply -f /vagrant/yaml/heapster/

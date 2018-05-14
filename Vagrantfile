@@ -5,7 +5,7 @@ $vm_box = "centos/7"
 $vm_box_version = "1802.01"
 #$vm_box = "Iorek/k8svirtualbox"
 #$vm_box_version = "1.9.5"
-$k8s_version = "v1.10.0"
+$k8s_version = "1.10.2"
 $k8s_cluster_ip_tpl = "192.168.33.%s"
 $k8s_master_ip = $k8s_cluster_ip_tpl % "10"
 $vm_name_tpl = "vg-k8s-%s"
@@ -32,7 +32,7 @@ Vagrant.configure("2") do |config|
 		
 		master.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version, $docker_registry]
 		
-		master.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
+		#master.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
 		
 		master.vm.provision :shell, :path => 'init-master.sh', :args => [$k8s_master_ip, $k8s_version, $docker_registry]
 	end
@@ -57,7 +57,7 @@ Vagrant.configure("2") do |config|
 			
 			node.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version, $docker_registry]
 			
-			node.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
+			#node.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
 			
 			node.vm.provision "shell", inline: <<-SHELL
 				echo "initialize node-#{i}"

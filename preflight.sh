@@ -61,9 +61,9 @@ enabled=1
 gpgcheck=0
 EOF
 yum install -y \
-	kubelet-1.10.0-0.x86_64 \
-	kubectl-1.10.0-0.x86_64 \
-	kubeadm-1.10.0-0.x86_64 \
+	kubelet-${k8s_version}-0.x86_64 \
+	kubectl-${k8s_version}-0.x86_64 \
+	kubeadm-${k8s_version}-0.x86_64 \
 	kubernetes-cni-0.6.0-0.x86_64 \
 	socat-1.7.3.2-2.el7.x86_64
 cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF

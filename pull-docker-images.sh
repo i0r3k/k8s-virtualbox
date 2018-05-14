@@ -38,5 +38,5 @@ docker_registry=$1
 #docker pull $docker_registry/kubernetes-dashboard-amd64:v1.8.3
 #docker tag $docker_registry/kubernetes-dashboard-amd64:v1.8.3 k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.3 
 
-docker pull $docker_registry/tiller:v2.8.2
-docker tag $docker_registry/tiller:v2.8.2 gcr.io/kubernetes-helm/tiller:v2.8.2
+#docker pull $docker_registry/tiller:v2.8.2
+#docker tag $docker_registry/tiller:v2.8.2 gcr.io/kubernetes-helm/tiller:v2.8.2
