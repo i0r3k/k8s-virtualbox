@@ -33,7 +33,7 @@ kubeadm init --config ~/config.yaml > ~/install.log
 
 # grep the join command
 sed -n '/kubeadm join/p' ~/install.log > ~/join.txt
-cp ~/join.txt /home/vagrant/join.txt
+#cp ~/join.txt /home/vagrant/join.txt
 
 tee -a ~/.bashrc <<-'EOF'
 source <(kubectl completion bash)

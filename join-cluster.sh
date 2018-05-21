@@ -8,7 +8,7 @@ k8s_master_ip=$1
 #ssh-keyscan -f ~/server.txt >> ~/.ssh/known_hosts
 
 # get the join command
-sshpass -p "vagrant" scp -o StrictHostKeyChecking=no vagrant@$k8s_master_ip:/home/vagrant/join.txt ~/join.txt
+sshpass -p "vagrant" scp -o StrictHostKeyChecking=no root@$k8s_master_ip:/root/join.txt ~/join.txt
 
 # join cluster
 source ~/join.txt
