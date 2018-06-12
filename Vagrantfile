@@ -25,16 +25,16 @@ Vagrant.configure("2") do |config|
 
 		master.vm.provider "virtualbox" do |vb|
 			vb.name = $vm_name_tpl % "master"
-			vb.memory = $vm_memory
-			vb.cpus = $vm_cpus
+			vb.memory = 4096 #$vm_memory
+			vb.cpus = 2 #$vm_cpus
 			vb.gui = false
 		end
 		
-		master.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version, $docker_registry]
+		master.vm.provision :shell, :path => 'preflight.sh', :name => 'preflight.sh', :args => [$k8s_version, $docker_registry]
 		
-		#master.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
+		#master.vm.provision :shell, :path => 'pull-docker-images.sh', :name => 'pull-docker-images.sh', :args => [$docker_registry]
 		
-		master.vm.provision :shell, :path => 'init-master.sh', :args => [$k8s_master_ip, $k8s_version, $docker_registry]
+		master.vm.provision :shell, :path => 'init-master.sh', :name => 'init-master.sh', :args => [$k8s_master_ip, $k8s_version, $docker_registry]
 	end
 	
 	(1..$num_nodes).each do |i|
@@ -55,15 +55,15 @@ Vagrant.configure("2") do |config|
 				vb.gui = false
 			end
 			
-			node.vm.provision :shell, :path => 'preflight.sh', :args => [$k8s_version, $docker_registry]
+			node.vm.provision :shell, :path => 'preflight.sh', :name => 'preflight.sh', :args => [$k8s_version, $docker_registry]
 			
-			#node.vm.provision :shell, :path => 'pull-docker-images.sh', :args => [$docker_registry]
+			#node.vm.provision :shell, :path => 'pull-docker-images.sh', :name => 'pull-docker-images.sh', :args => [$docker_registry]
 			
 			node.vm.provision "shell", inline: <<-SHELL
 				echo "initialize node-#{i}"
 			SHELL
 			
-			node.vm.provision :shell, :path => "join-cluster.sh", :args => [$k8s_master_ip]
+			node.vm.provision :shell, :path => "join-cluster.sh", :name => 'join-cluster.sh', :args => [$k8s_master_ip, $vm_name_tpl % "node-#{i}"]
 		end
 	end
 end

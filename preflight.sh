@@ -85,3 +85,6 @@ EOF
 # create regular user(no need for provisoning with vagrant)
 #useradd -U k8s
 #usermod -aG wheel k8s
+
+# Generate SSH Keys
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ''

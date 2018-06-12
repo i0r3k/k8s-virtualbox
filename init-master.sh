@@ -49,9 +49,7 @@ kubectl apply -f /vagrant/yaml/flannel/kube-flannel-vagrant.yml
 kubectl apply -f /vagrant/yaml/storage-class/local/default.yaml
 
 # install dashboard
-kubectl apply -f /vagrant/yaml/dashboard/kubernetes-dashboard.yaml
-kubectl apply -f /vagrant/yaml/dashboard/admin-role.yaml
-#kubectl apply -f /vagrant/yaml/dashboard/
+kubectl apply -f /vagrant/yaml/dashboard/
 kubectl -n kube-system describe secret `kubectl -n kube-system get secret|grep admin-token|cut -d " " -f1`|grep "token:"|tr -s " "|cut -d " " -f2 > ~/admin-token.txt
 echo "https://192.168.33.11:30001/" > ~/dashboard-url.txt
 echo "You can access Kubernetes Dashboard with ~/admin-token.txt"
@@ -59,31 +57,34 @@ echo "URL: https://192.168.33.11:30001/"
 
 # install Helm
 # Service account with cluster-admin role
-#sh /vagrant/scripts/get_helm.sh
-wget https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
-tar -zxvf helm-v2.8.2-linux-amd64.tar.gz
-mv linux-amd64/helm /usr/local/bin/helm
-export PATH=/usr/local/bin:$PATH 
-#&& echo "export PATH=/usr/local/bin:$PATH" >> ~/.bash_profile
-tee -a ~/.bashrc <<-'EOF'
-export PATH=/usr/local/bin:$PATH
-EOF
-kubectl create serviceaccount tiller --namespace kube-system
-#kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-kubectl apply -f /vagrant/yaml/helm/rbac-config.yaml
-helm init --service-account tiller -i iorek/tiller:v2.8.2
+### wget https://storage.googleapis.com/kubernetes-helm/helm-v2.8.2-linux-amd64.tar.gz
+### tar -zxvf helm-v2.8.2-linux-amd64.tar.gz
+### mv linux-amd64/helm /usr/local/bin/helm
+### export PATH=/usr/local/bin:$PATH 
+### tee -a ~/.bashrc <<-'EOF'
+### export PATH=/usr/local/bin:$PATH
+### EOF
+### kubectl create serviceaccount tiller --namespace kube-system
+### #kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+### kubectl apply -f /vagrant/yaml/helm/rbac-config.yaml
+### helm init --service-account tiller -i iorek/tiller:v2.8.2
 
+# !!! Deprecated !!!, will use Prometheus & Grafana
 # install Heapster
-kubectl apply -f /vagrant/yaml/heapster/
+### kubectl apply -f /vagrant/yaml/heapster/
 
 # install EFK
 # NOTE: Powerful CPU and memory allocation required. At least 4G per virtual machine.
 #kubectl apply -f /vagrant/yaml/efk/
+#kubectl apply -f /vagrant/yaml/fluentd-elasticsearch/
 
 # install weave scope
-kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+### kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 # to ensure the namespace exists
-kubectl create namespace istio-system
+### kubectl create namespace istio-system
 # install traefik ingress controller
-kubectl apply -f /vagrant/yaml/traefik-ingress/
+### kubectl apply -f /vagrant/yaml/traefik-ingress/
+
+# install ingress-nginx Ingress Controller
+kubectl apply -f /vagrant/yaml/ingress-nginx/
